@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สูตรหวย - เมนูหลัก</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-tap-highlight-color:transparent;
+}
+
+body{
+    background: #0b0b0b;
+    background: radial-gradient(circle at center, #1f1d15 0%, #0b0b0b 100%);
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* กล่องหน้าต่างหลัก */
+.app-container{
+    width: 100%;
+    max-width: 412px;
+    background: #161616;
+    border: 2px solid #f7d147;
+    border-radius: 24px;
+    padding: 35px 24px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(247, 209, 71, 0.1);
+}
+
+/* หัวข้อระยิบระยับ */
+.brand-title{
+    color: #f7d147;
+    font-size: 2.8rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    text-shadow: 0 4px 10px rgba(247, 209, 71, 0.3);
+}
+
+.brand-subtitle {
+    color: #888;
+    font-size: 0.95rem;
+    margin-bottom: 35px;
+    letter-spacing: 1px;
+}
+
+/* กลุ่มปุ่ม */
+.button-group{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ปุ่มสไตล์โมเดิร์นพรีเมียม */
+.btn{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(to bottom, #2c2a20, #1c1a12);
+    border: 1.5px solid #f7d147;
+    border-radius: 16px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ไอคอนหน้าปุ่ม */
+.btn-icon {
+    font-size: 2rem;
+    margin-right: 18px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+/* ข้อความในปุ่ม */
+.btn-text-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-title {
+    color: #f7d147;
+    font-size: 1.35rem;
+    font-weight: bold;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.btn-desc {
+    color: #aaa;
+    font-size: 0.85rem;
+    font-weight: normal;
+}
+
+/* เอฟเฟกต์ตอนชี้และกดปุ่ม */
+@media (hover: hover) {
+    .btn:hover {
+        background: linear-gradient(to bottom, #ffe366, #f7d147);
+        border-color: #ffe366;
+        box-shadow: 0 6px 20px rgba(247, 209, 71, 0.2);
+        transform: translateY(-2px);
+    }
+    .btn:hover .btn-title {
+        color: #000;
+    }
+    .btn:hover .btn-desc {
+        color: #333;
+    }
+}
+
+.btn:active {
+    transform: scale(0.97) translateY(0);
+    box-shadow: none;
+    opacity: 0.9;
+}
+
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- หัวข้อหลักประจำแอป -->
+    <h1 class="brand-title">คำนวณหวย</h1>
+    <p class="brand-subtitle">ระบบวิเคราะห์สูตรและคัดกรองเลขเด่น</p>
+
+    <!-- กลุ่มปุ่มเมนูหลัก -->
+    <div class="button-group">
+
+        <!-- ปุ่ม 1 -->
+        <button class="btn" onclick="goToPage1()">
+            <span class="btn-icon">📝</span>
+            <div class="btn-text-container">
+                <span class="btn-title">บันทึกผล</span>
+                <span class="btn-desc">กรอกข้อมูลและจัดเก็บสถิติสูตรตัวเลข</span>
+            </div>
+        </button>
+
+        <!-- ปุ่ม 2 -->
+        <button class="btn" onclick="goToFormulaPage()">
+            <span class="btn-icon">📊</span>
+            <div class="btn-text-container">
+                <span class="btn-title">คำนวณสูตร</span>
+                <span class="btn-desc">วิเคราะห์ตัวเลขชน 3 ตัว และ ชน 2 ตัว</span>
+            </div>
+        </button>
+
+        <!-- ปุ่ม 3 -->
+        <button class="btn" onclick="goToSetPage()">
+            <span class="btn-icon">⚙️</span>
+            <div class="btn-text-container">
+                <span class="btn-title">สร้างชุด</span>
+                <span class="btn-desc">จับคู่ 3 ตัวตรง พร้อมระบบคัดกรองขั้นสูง</span>
+            </div>
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+/* ปุ่ม 1: บันทึกผล (ปรับลิงก์ให้ตรงกับไฟล์หน้าป้อนสูตรของคุณ หากชื่ออื่นสามารถแก้ไขได้ครับ) */
+function goToPage1(){
+    window.location.href = "สูตรหวย.html"; 
+}
+
+/* ปุ่ม 2: คำนวณสูตร */
+function goToFormulaPage(){
+    window.location.href = "คำนวณสูตร.html";
+}
+
+/* ปุ่ม 3: สร้างชุด */
+function goToSetPage(){
+    window.location.href = "สร้างชุด.html";
+}
+</script>
+
+</body>
+</html>

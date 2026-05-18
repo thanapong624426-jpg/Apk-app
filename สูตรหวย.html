@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สูตรคำนวณเลขเด่น</title>
+<link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    -webkit-tap-highlight-color: transparent;
+}
+body{
+    margin:0;
+    padding:15px;
+    background:#0f0f0f;
+    color:#ffd700;
+    font-family:Tahoma,sans-serif;
+}
+button:focus, input:focus, select:focus, textarea:focus {
+    outline: none;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+}
+h1{
+    text-align:center;
+    margin:15px 0;
+}
+.box{
+    background:#1a1a1a;
+    border:2px solid #ffd700;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
+}
+.input-label{
+    font-size:14px;
+    color:#ffffff;
+    margin-bottom:5px;
+    display:block;
+}
+.input{
+    width:100%;
+    height:55px;
+    font-size:22px;
+    text-align:center;
+    border:none;
+    border-radius:10px;
+    outline:none;
+    margin-bottom:12px;
+}
+.input-optional{
+    background: #e6f2ff;
+}
+
+/* สไตล์ปุ่มหลัก */
+button{
+    width:180px;
+    display:block;
+    margin:10px auto 0;
+    padding:12px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    background:#ffd700;
+    color:#000000;
+    font-weight:bold;
+    cursor:pointer;
+    /* เพิ่ม transition เพื่อให้ตอนยุบและเด้งกลับดูนุ่มนวลขึ้น */
+    transition: transform 0.1s ease; 
+}
+
+/* 🔴 เพิ่มโค้ดส่วนนี้: เมื่อกดปุ่มใดๆ ก็ตาม ปุ่มจะยุบลงไป 4% ทันที */
+button:active {
+    transform: scale(0.96);
+}
+
+.bottom-buttons{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    margin-top:20px;
+}
+.bottom-buttons button{
+    width:50%;
+    margin: 0; /* เคลียร์มาร์จิ้นของปุ่มล่าง */
+}
+.result{
+    white-space:pre-line;
+    font-size:15px;
+    line-height:1.4;
+}
+.match-success {
+    color: #00ff66;
+    font-weight: bold;
+}
+.match-fail {
+    color: #ff3333;
+    font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>สูตรคำนวณเลขเด่น</h1>
+
+<div class="box">
+    <label class="input-label">🔢 เลขรางวัลที่ 1 (จำเป็น)</label>
+    <input id="num" class="input" maxlength="6" placeholder="กรอกเลข 6 ตัว">
+    
+    <label class="input-label">🎯 เลขท้าย 3 ตัวที่ออก (ใส่เพื่อตรวจเช็คย้อนหลัง / ไม่ใส่ก็ได้)</label>
+    <input id="checkNum" class="input input-optional" maxlength="3" placeholder="กรอกเลข 3 ตัว">
+    
+    <button onclick="saveNumber()">บันทึก</button>
+</div>
+
+<div class="box result" id="output">กรอกเลขแล้วกดบันทึก</div>
+
+<div class="bottom-buttons">
+    <button onclick="goBack()">ย้อนกลับ</button>
+    <button onclick="nextPage()">หน้าถัดไป</button>
+</div>
+</div>
+
+<script>
+/* ================= NAV ================= */
+function goBack(){
+    window.location.href="index.html";
+}
+
+function nextPage(){
+    window.location.href="คำนวณสูตร.html";
+}
+
+/* ================= ฟังก์ชันรันเลข 9 ตัว ================= */
+function run9(n){
+    n = Number(n);
+    let s = "";
+    for(let i=0; i<9; i++){
+        s += (n + i) % 10;
+    }
+    return s;
+}
+
+function lastDigit(n){
+    return Math.abs(Number(n)) % 10;
+}
+
+/* ================= ฟังก์ชันนับตัวชน (แยกส่งค่า ชน 3 และ ชน 2 เป็นระบบ) ================= */
+function countDup(arr){
+    let count={};
+    arr.join("").split("").forEach(n=>{
+        count[n]=(count[n]||0)+1;
+    });
+    
+    let three=[];
+    let two=[];
+    
+    for(let i=0; i<=9; i++){
+        let c=count[i]||0;
+        if(c===3) three.push(i);
+        if(c===2) two.push(i);
+    }
+    
+    return {
+        threeStr: three.join(""),
+        twoStr: two.join(""),
+        threeDisplay: three.join(" ") || "-",
+        twoDisplay: two.join(" ") || "-"
+    };
+}
+
+/* ================= ฟังก์ชันตรวจเช็คย้อนหลัง (ตรวจจับถ้าเลขถูกรวมในกลุ่ม) ================= */
+function checkResult(threeDigits, twoDigits, targetDigit) {
+    if (!targetDigit) return "";
+    let allDigits = threeDigits + twoDigits;
+    if (allDigits.includes(targetDigit)) {
+        return ` -> <span class="match-success">งวดนี้เข้า (${targetDigit}) ✅</span>`;
+    } else {
+        return ` -> <span class="match-fail">งวดนี้หลุด (${targetDigit}) ❌</span>`;
+    }
+}
+
+/* ================= SAVE ================= */
+function saveNumber(){
+    let num=document.getElementById("num").value.trim();
+    let checkNum=document.getElementById("checkNum").value.trim();
+    
+    if(!/^\d{6}$/.test(num)){
+        document.getElementById("output").innerHTML = "❌ กรุณากรอกเลขหลักที่ 1 ให้ครบ 6 ตัว";
+        return;
+    }
+    if(checkNum !== "" && !/^\d{3}$/.test(checkNum)){
+        document.getElementById("output").innerHTML = "❌ หากจะกรอกเลขเช็คผลย้อนหลัง ต้องกรอกให้ครบ 3 ตัว";
+        return;
+    }
+    
+    calculate(num, checkNum);
+}
+
+/* ================= CALCULATE ================= */
+function calculate(num, checkNum){
+    try{
+        let p=+num[2]; 
+        let r=+num[3]; 
+        let t=+num[4]; 
+        let u=+num[5]; 
+
+        let targetH = checkNum ? checkNum[0] : null;
+        let targetT = checkNum ? checkNum[1] : null;
+        let targetU = checkNum ? checkNum[2] : null;
+
+        /* ================= หลักร้อย (สูตร 2, 4, 5) ================= */
+        let h2 = run9(u); let h4 = run9(lastDigit(r + u)); let h5 = run9(lastDigit(r + u + 3));
+        let hc = countDup([h2, h4, h5]);
+
+        /* ================= หลักสิบ (สูตร 1, 4, 5) ================= */
+        let s1 = run9(t); let s4 = run9(lastDigit(p + r + 3)); let s5 = run9(lastDigit(t + 9));
+        let sc = countDup([s1, s4, s5]);
+
+        /* ================= หลักหน่วย (สูตร 2, 3, 5) ================= */
+        let n2 = run9(lastDigit(r + t + 7)); let n3 = run9(lastDigit(r + 7)); let n5 = run9(lastDigit(p + 6));
+        let nc = countDup([n2, n3, n5]);
+
+        // บันทึกลง localStorage โดยแยกโครงสร้าง ชน 3 และ ชน 2 ออกจากกันอย่างชัดเจน
+        let formulaData = {
+            h3: hc.threeStr, h2: hc.twoStr,
+            t3: sc.threeStr, t2: sc.twoStr,
+            u3: nc.threeStr, u2: nc.twoStr
+        };
+        localStorage.setItem("formulaData", JSON.stringify(formulaData));
+
+        let checkSummary = "";
+        if (checkNum) {
+            checkSummary = `🔍 ผลตรวจสูตรย้อนหลังกับเลข [${checkNum}]\n━━━━━━━━━━━━━━━━━━━━\n`;
+        }
+
+        // แสดงผลหน้าจอหลัก
+        document.getElementById("output").innerHTML=`
+เลขที่คำนวณ = ${num}
+${checkSummary}━━━━━━━━━━
+หลักร้อย (9 ตัว)
+สูตร2: ${h2}
+สูตร4: ${h4}
+สูตร5: ${h5}
+ชน 3 ตัว = ${hc.threeDisplay}
+ชน 2 ตัว = ${hc.twoDisplay} ${checkResult(hc.threeStr, hc.twoStr, targetH)}
+━━━━━━━━━━
+หลักสิบ (9 ตัว)
+สูตร1: ${s1}
+สูตร4: ${s4}
+สูตร5: ${s5}
+ชน 3 ตัว = ${sc.threeDisplay}
+ชน 2 ตัว = ${sc.twoDisplay} ${checkResult(sc.threeStr, sc.twoStr, targetT)}
+━━━━━━━━━━
+หลักหน่วย (9 ตัว)
+สูตร2: ${n2}
+สูตร3: ${n3}
+สูตร5: ${n5}
+ชน 3 ตัว = ${nc.threeDisplay}
+ชน 2 ตัว = ${nc.twoDisplay} ${checkResult(nc.threeStr, nc.twoStr, targetU)}
+`;
+    } catch(err){
+        document.getElementById("output").innerHTML = "❌ ERROR: " + err.message;
+    }
+}
+</script>
+</body>
+</html>

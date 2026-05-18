@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คำนวณสูตร</title>
+<link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:tahoma, sans-serif;
+    /* 🔴 ลบไฮไลท์สีฟ้าเวลากดบนมือถือ */
+    -webkit-tap-highlight-color: transparent;
+}
+body{
+    background:#0b0b0b;
+    color:#ffffff;
+    padding:20px;
+}
+/* 🔴 ลบเส้นขอบสีฟ้าเวลาคลิก/โฟกัส */
+button:focus {
+    outline: none;
+}
+
+/* กล่องหลัก */
+.box{
+    background:#1a1a1a;
+    border:2px solid #f7d147;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+}
+/* หัวข้อ */
+.title{
+    text-align:center;
+    color:#f7d147;
+    font-size:32px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+/* กล่องสูตร */
+.formulaBox{
+    background:#000000;
+    border:2px solid #f7d147;
+    border-radius:12px;
+    padding:18px;
+    color:#ffffff;
+    font-size:18px;
+    font-weight:bold;
+    line-height:1.8;
+}
+/* สีเลขเด่น */
+.green{
+    color:#00ff66;
+}
+.yellow{
+    color:#f7d147;
+}
+/* ปุ่มล่าง */
+.bottom-buttons{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    margin-top:20px;
+}
+/* ปุ่ม */
+.bottom-buttons button{
+    width:50%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(
+        to bottom,
+        #ffe366,
+        #f7d147
+    );
+    color:#000;
+    font-size:20px;
+    font-weight:bold;
+    cursor:pointer;
+    /* เพิ่มความนุ่มนวลเวลาปุ่มยุบและเด้งคืนตัว */
+    transition: transform 0.1s ease;
+}
+
+/* 🔴 ปรับเอฟเฟกต์ให้ปุ่มยุบลง 4% และเด้งกลับตอนปล่อย เหมือนหน้าแรกแล้วครับ */
+.bottom-buttons button:active{
+    transform:scale(0.96);
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+<div class="title">คำนวณสูตร</div>
+
+<div id="formulaBox" class="formulaBox">
+    กำลังโหลดข้อมูล...
+</div>
+
+<!-- ปุ่มล่าง -->
+<div class="bottom-buttons">
+    <button onclick="goBack()">ย้อนกลับ</button>
+    <button onclick="nextPage()">หน้าถัดไป</button>
+</div>
+</div>
+
+<script>
+/* โหลดข้อมูลจาก localStorage */
+let data = JSON.parse(localStorage.getItem("formulaData"));
+
+/* แสดงเลขเด่นแยกประเภท (ชน 3 และ ชน 2) */
+if(data){
+    // จัดรูปแบบตัวเลขชนเพื่อนำไปแสดงผลบนหน้าจอ
+    let h3Display = data.h3.split("").join(" ") || "-";
+    let h2Display = data.h2.split("").join(" ") || "-";
+    let t3Display = data.t3.split("").join(" ") || "-";
+    let t2Display = data.t2.split("").join(" ") || "-";
+    let u3Display = data.u3.split("").join(" ") || "-";
+    let u2Display = data.u2.split("").join(" ") || "-";
+
+    // แก้ไขการแสดงผลเป็นหลักละ 3 แถวตรงนี้ครับ
+    document.getElementById("formulaBox").innerHTML = `
+📍 <span class="yellow">หลักร้อย</span>
+<br>📂 ชน 3 ตัว = <span class="green">${h3Display}</span>
+<br>📂 ชน 2 ตัว = <span class="green">${h2Display}</span>
+<br><br>
+
+📍 <span class="yellow">หลักสิบ</span>
+<br>📂 ชน 3 ตัว = <span class="green">${t3Display}</span>
+<br>📂 ชน 2 ตัว = <span class="green">${t2Display}</span>
+<br><br>
+
+📍 <span class="yellow">หลักหน่วย</span>
+<br>📂 ชน 3 ตัว = <span class="green">${u3Display}</span>
+<br>📂 ชน 2 ตัว = <span class="green">${u2Display}</span>
+`;
+
+} else {
+    document.getElementById("formulaBox").innerHTML = "ยังไม่มีข้อมูลเลขเด่น";
+}
+
+/* ย้อนกลับ */
+function goBack(){
+    window.location.href = "สูตรหวย.html";
+}
+
+/* หน้าถัดไป (ข้อมูล formulaData ใน localStorage จะยังคงอยู่ เพื่อให้หน้า สร้างชุด.html ดึงไปใช้ต่อได้) */
+function nextPage(){
+    window.location.href = "สร้างชุด.html";
+}
+</script>
+
+</body>
+</html>

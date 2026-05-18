@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สร้างชุด</title>
+<link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:tahoma, sans-serif;
+    /* 🔴 เพิ่มบรรทัดนี้เพื่อลบสีฟ้าเวลากดบนมือถือทุกปุ่ม ทุกองค์ประกอบ */
+    -webkit-tap-highlight-color: transparent;
+}
+body{
+    background:#0b0b0b;
+    color:#ffffff;
+    padding:20px;
+}
+/* 🔴 ลบเส้นขอบสีฟ้าเวลาคลิก/โฟกัส บนคอมพิวเตอร์และมือถือ */
+button:focus, input:focus, select:focus, textarea:focus {
+    outline: none;
+}
+
+.box{
+    background:#1a1a1a;
+    border:2px solid #f7d147;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+}
+h2{
+    color:#f7d147;
+    margin-bottom:15px;
+    text-align:center;
+    font-size:28px;
+}
+h3{
+    color:#f7d147;
+    margin: 10px 0;
+    font-size:20px;
+}
+.count{
+    color:#00ff66;
+    font-size:24px;
+    font-weight:bold;
+}
+.count-sub{
+    color:#ffaa00;
+    font-size:24px;
+    font-weight:bold;
+}
+
+/* ส่วนคอนโทรลตัวตัดสูตร */
+.filter-section {
+    background: #252525;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+.filter-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}
+.filter-row:last-child {
+    border-bottom: none;
+}
+.filter-label {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* ปุ่มเปิด/ปิด */
+.toggle-btn {
+    width: 80px;
+    padding: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.2s;
+}
+.btn-off {
+    background: #444;
+    color: #bbb;
+}
+.btn-on {
+    background: #00ff66;
+    color: #000;
+}
+
+/* ตารางเลือกแต้มตาย */
+.score-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    justify-content: center;
+}
+.score-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    font-weight: bold;
+    border: 2px solid #555;
+    border-radius: 8px;
+    background: #333;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+/* แสดงตัวหนังสือสีแดงเมื่อกดเลือกแต้มตาย */
+.score-btn.active {
+    background: #222;
+    color: #ff3333;
+    border-color: #ff3333;
+    box-shadow: 0 0 5px rgba(255, 51, 51, 0.5);
+}
+
+/* กล่องแสดงผลเลข */
+.setBox{
+    width:100%;
+    height:250px;
+    overflow:auto;
+    border-radius:12px;
+    padding:15px;
+    background:#000000;
+    border:2px solid #f7d147;
+    font-size:22px;
+    font-weight:bold;
+    line-height:2;
+    margin-top:10px;
+    word-break:break-word;
+    color:#00ff66;
+}
+.setBox.sub{
+    border-color: #ffaa00;
+    color: #ffaa00;
+}
+
+/* ปุ่มต่างๆ */
+.copy-btn{
+    width:100%;
+    padding:16px;
+    font-size:22px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(to bottom, #ffe366, #f7d147);
+    color:#000;
+    font-weight:bold;
+    margin-top:10px;
+    margin-bottom:20px;
+    cursor:pointer;
+}
+.copy-btn.sub-btn {
+    background: linear-gradient(to bottom, #ffcc66, #ffaa00);
+}
+.copy-btn:active, .bottom-buttons button:active{
+    transform:scale(0.98);
+}
+.bottom-buttons{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    margin-top:20px;
+}
+.bottom-buttons button{
+    width:50%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(to bottom, #ffe366, #f7d147);
+    color:#000;
+    font-size:20px;
+    font-weight:bold;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+    <h2>⚙️ แผงควบคุมระบบคัดกรองเลข</h2>
+    
+    <div class="filter-section">
+        <!-- ระบบที่ 1 -->
+        <div class="filter-row">
+            <span class="filter-label">🔴 ตัดแต้มตาย (นับตามตารางคู่ท้ายหลักสิบ+หน่วย)</span>
+            <button id="toggle-score" class="toggle-btn btn-off" onclick="toggleFilter('score')">ปิด</button>
+        </div>
+        <!-- แป้นเลือกแต้มตาย (กดแล้วตัวเลขจะเป็นสีแดง) -->
+        <div class="score-grid" id="scoreGridContainer">
+            <button class="score-btn" onclick="selectScore(0, this)">0</button>
+            <button class="score-btn" onclick="selectScore(1, this)">1</button>
+            <button class="score-btn" onclick="selectScore(2, this)">2</button>
+            <button class="score-btn" onclick="selectScore(3, this)">3</button>
+            <button class="score-btn" onclick="selectScore(4, this)">4</button>
+            <button class="score-btn" onclick="selectScore(5, this)">5</button>
+            <button class="score-btn" onclick="selectScore(6, this)">6</button>
+            <button class="score-btn" onclick="selectScore(7, this)">7</button>
+            <button class="score-btn" onclick="selectScore(8, this)">8</button>
+            <button class="score-btn" onclick="selectScore(9, this)">9</button>
+        </div>
+        
+        <!-- ระบบที่ 2 -->
+        <div class="filter-row" style="margin-top:15px;">
+            <span class="filter-label">♊ ตัดเลขเบิ้ล (ซ้ำ 2 ตัว)</span>
+            <button id="toggle-double" class="toggle-btn btn-off" onclick="toggleFilter('double')">ปิด</button>
+        </div>
+        <!-- ระบบที่ 3 -->
+        <div class="filter-row">
+            <span class="filter-label">🌗 ตัดเลขฝ่ายเดียว (คู่ล้วน/คี่ล้วน)</span>
+            <button id="toggle-oneSide" class="toggle-btn btn-off" onclick="toggleFilter('oneSide')">ปิด</button>
+        </div>
+        <!-- ระบบที่ 4 -->
+        <div class="filter-row">
+            <span class="filter-label">📈 ตัดเลขสูง ([56789] ทั้งชุด)</span>
+            <button id="toggle-high" class="toggle-btn btn-off" onclick="toggleFilter('high')">ปิด</button>
+        </div>
+        <!-- ระบบที่ 5 -->
+        <div class="filter-row">
+            <span class="filter-label">📉 ตัดเลขต่ำ ([01234] ทั้งชุด)</span>
+            <button id="toggle-low" class="toggle-btn btn-off" onclick="toggleFilter('low')">ปิด</button>
+        </div>
+        <!-- ระบบที่ 6 -->
+        <div class="filter-row">
+            <span class="filter-label">👑 ตัดเลขตอง (ซ้ำกัน 3 ตัว)</span>
+            <button id="toggle-triple" class="toggle-btn btn-off" onclick="toggleFilter('triple')">ปิด</button>
+        </div>
+        <!-- ระบบที่ 7 -->
+        <div class="filter-row">
+            <span class="filter-label">🏃 ตัดเลขเรียง (มัดรวมทุกประตู)</span>
+            <button id="toggle-sequence" class="toggle-btn btn-off" onclick="toggleFilter('sequence')">ปิด</button>
+        </div>
+    </div>
+</div>
+
+<!-- กล่องแสดงชุดตัวเลข -->
+<div class="box">
+    <h3>🟢 ชุด 3 ตัวตรง - เลขเด่น (<span id="count" class="count">0</span> ชุด)</h3>
+    <div id="setBox" class="setBox">กำลังโหลด...</div>
+    <button class="copy-btn" onclick="copySet('main')">คัดลอกเลขเด่น</button>
+
+    <h3>🟡 ชุด 3 ตัวตรง - เลขรอง / เลขคัดทิ้ง (<span id="countSub" class="count-sub">0</span> ชุด)</h3>
+    <div id="setBoxSub" class="setBox sub">ไม่มีเลขรอง</div>
+    <button class="copy-btn sub-btn" onclick="copySet('sub')">คัดลอกเลขรอง</button>
+
+    <!-- ปุ่มนำทางส่วนล่าง -->
+    <div class="bottom-buttons">
+        <button onclick="goBack()">ย้อนกลับ</button>
+        <button onclick="nextPage()">หน้าถัดไป</button>
+    </div>
+</div>
+
+<script>
+/* ================= โครงสร้างสถานะปุ่มตัดเลข ================= */
+let filters = {
+    score: false,
+    double: false,
+    oneSide: false,
+    high: false,
+    low: false,
+    triple: false,
+    sequence: false
+};
+let deadScores = new Set(); 
+
+/* ================= ฐานข้อมูลตารางเลขตายแต้ม (ตามคู่ท้ายสิบ+หน่วย) ================= */
+const deadTable = {
+    0: ["00", "19", "28", "37", "46", "55", "64", "73", "82", "91"],
+    1: ["01", "10", "29", "92", "38", "83", "47", "74", "56", "65"],
+    2: ["02", "20", "11", "39", "93", "48", "84", "57", "75", "66"],
+    3: ["03", "30", "12", "21", "49", "94", "58", "85", "67", "76"],
+    4: ["04", "40", "13", "31", "22", "59", "95", "68", "86", "77"],
+    5: ["05", "50", "14", "41", "23", "32", "69", "96", "78", "87"],
+    6: ["06", "60", "15", "51", "24", "42", "33", "79", "97", "88"],
+    7: ["07", "70", "16", "61", "25", "52", "34", "43", "89", "98"],
+    8: ["08", "80", "17", "71", "26", "62", "35", "53", "44", "99"],
+    9: ["09", "90", "18", "81", "27", "72", "36", "63", "45", "54"]
+};
+
+let data = JSON.parse(localStorage.getItem("formulaData"));
+let masterList = []; 
+let currentMain = []; 
+let currentSub = [];  
+
+if(data){
+    let h3 = data.h3 ? data.h3.split("") : [];
+    let h2 = data.h2 ? data.h2.split("") : [];
+    let t3 = data.t3 ? data.t3.split("") : [];
+    let t2 = data.t2 ? data.t2.split("") : [];
+    let u3 = data.u3 ? data.u3.split("") : [];
+    let u2 = data.u2 ? data.u2.split("") : [];
+
+    let uniqueSets = new Set();
+
+    for(let h of h3) for(let t of t3) for(let u of u3) uniqueSets.add(`${h}${t}${u}`);
+    for(let h of h3) for(let t of t3) for(let u of u2) uniqueSets.add(`${h}${t}${u}`);
+    for(let h of h3) for(let t of t2) for(let u of u3) uniqueSets.add(`${h}${t}${u}`);
+    for(let h of h2) for(let t of t3) for(let u of u3) uniqueSets.add(`${h}${t}${u}`);
+
+    masterList = Array.from(uniqueSets).sort();
+}
+
+window.onload = function() {
+    runFilterEngine();
+};
+
+function toggleFilter(type) {
+    filters[type] = !filters[type];
+    let btn = document.getElementById("toggle-" + type);
+    if(filters[type]) {
+        btn.innerText = "เปิด";
+        btn.className = "toggle-btn btn-on";
+    } else {
+        btn.innerText = "ปิด";
+        btn.className = "toggle-btn btn-off";
+    }
+    runFilterEngine();
+}
+
+function selectScore(num, element) {
+    if(deadScores.has(num)) {
+        deadScores.delete(num);
+        element.classList.remove("active");
+    } else {
+        deadScores.add(num);
+        element.classList.add("active");
+    }
+    if(filters.score) {
+        runFilterEngine(); 
+    }
+}
+
+function runFilterEngine() {
+    if(masterList.length === 0) {
+        document.getElementById("setBox").innerHTML = "ยังไม่มีข้อมูลเลขเด่นที่เข้าเกณฑ์เงื่อนไขจากหน้าคำนวณ";
+        document.getElementById("setBoxSub").innerHTML = "-";
+        return;
+    }
+
+    currentMain = [];
+    currentSub = [];
+
+    const seqSets = [
+        ["0","1","2"], ["1","2","3"], ["2","3","4"], ["3","4","5"], ["4","5","6"],
+        ["5","6","7"], ["6","7","8"], ["7","8","9"], ["8","9","0"], ["9","0","1"]
+    ];
+
+    for(let code of masterList) {
+        let n1 = code[0]; 
+        let n2 = code[1]; 
+        let n3 = code[2]; 
+        
+        let tailTwoDigits = n2 + n3; 
+
+        let isCut = false;
+
+        if(filters.score) {
+            for(let deadNum of deadScores) {
+                let targetList = deadTable[deadNum]; 
+                if(targetList.includes(tailTwoDigits)) {
+                    isCut = true; 
+                    break;
+                }
+            }
+        }
+
+        if(!isCut && filters.triple) {
+            if(n1 === n2 && n2 === n3) isCut = true;
+        }
+
+        if(!isCut && filters.double) {
+            if((n1 === n2 && n1 !== n3) || (n1 === n3 && n1 !== n2) || (n2 === n3 && n2 !== n1)) {
+                isCut = true;
+            }
+        }
+
+        if(!isCut && filters.oneSide) {
+            let mod1 = parseInt(n1) % 2, mod2 = parseInt(n2) % 2, mod3 = parseInt(n3) % 2;
+            if(mod1 === mod2 && mod2 === mod3) isCut = true;
+        }
+
+        if(!isCut && filters.high) {
+            if(parseInt(n1) >= 5 && parseInt(n2) >= 5 && parseInt(n3) >= 5) isCut = true;
+        }
+
+        if(!isCut && filters.low) {
+            if(parseInt(n1) <= 4 && parseInt(n2) <= 4 && parseInt(n3) <= 4) isCut = true;
+        }
+
+        if(!isCut && filters.sequence) {
+            for(let set of seqSets) {
+                let matchCount = 0;
+                if(code.includes(set[0])) matchCount++;
+                if(code.includes(set[1])) matchCount++;
+                if(code.includes(set[2])) matchCount++;
+                
+                if(matchCount === 3) {
+                    isCut = true;
+                    break;
+                }
+            }
+        }
+
+        if(isCut) {
+            currentSub.push(code);
+        } else {
+            currentMain.push(code);
+        }
+    }
+
+    document.getElementById("setBox").innerHTML = currentMain.length > 0 ? currentMain.join(" ") : "ไม่มีเลขเด่นเหลืออยู่";
+    document.getElementById("count").innerText = currentMain.length;
+
+    document.getElementById("setBoxSub").innerHTML = currentSub.length > 0 ? currentSub.join(" ") : "ไม่มีเลขรองคัดทิ้ง";
+    document.getElementById("countSub").innerText = currentSub.length;
+}
+
+function copySet(target){
+    let targetList = (target === 'main') ? currentMain : currentSub;
+    if(targetList.length === 0) {
+        alert("ไม่มีตัวเลขให้คัดลอก");
+        return;
+    }
+    navigator.clipboard.writeText(targetList.join(" "));
+    alert("คัดลอกกลุ่มชุดเลขเรียบร้อยแล้วครับ");
+}
+
+function goBack(){
+    window.location.href = "คำนวณสูตร.html";
+}
+function nextPage(){
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

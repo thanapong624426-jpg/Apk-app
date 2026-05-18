@@ -1,0 +1,20 @@
+{
+  "short_name": "สูตรหวย",
+  "name": "โปรแกรมคำนวณสูตรหวย",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/สูตรหวย.html",
+  "background_color": "#0b0b0b",
+  "display": "standalone",
+  "theme_color": "#f7d147"
+}
